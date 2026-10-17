@@ -22,7 +22,9 @@ npm run preview
 
 Publish **only `dist/`** to your static host. Both pages are generated as real HTML, so the career page can be linked directly and refreshed without SPA rewrites. Vite uses relative asset paths; navigation also works when the entire output is hosted under a subdirectory.
 
-For a Git-connected static host, use `npm run build` as the build command and `dist` as the publish directory. No server or environment variables are needed. Pushing this repository to GitHub does not itself deploy the website.
+For a Git-connected static host, use `npm run build` as the build command and `dist` as the publish directory. No server or environment variables are needed.
+
+For GitHub Pages, select **GitHub Actions** under **Settings → Pages → Build and deployment → Source** and keep `jonwilliams.xyz` as the custom domain. The `.github/workflows/pages.yml` workflow installs dependencies, builds the site, and publishes only `dist/` on pushes to `main` or a manual run. Publishing the repository root directly skips Vite and breaks styles, scripts, and the resume download. Enable **Enforce HTTPS** once GitHub finishes provisioning the certificate. GitHub Pages deployments do not run the separate Arweave deployment script.
 
 Build setup follows [Vite's multi-page documentation](https://vite.dev/guide/build.html#multi-page-app).
 
