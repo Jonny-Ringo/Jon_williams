@@ -1,28 +1,8 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
-import { generateResume } from './scripts/generate-resume.js';
-import { careerPath } from './scripts/resume-content.js';
-import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   base: './',
-  plugins: [
-    {
-      name: 'career-resume',
-      async buildStart() {
-        await generateResume();
-      },
-      configureServer(server) {
-        let pending = Promise.resolve();
-        server.watcher.on('change', (path) => {
-          if (resolve(path) !== fileURLToPath(careerPath)) return;
-          pending = pending
-            .then(() => generateResume())
-            .catch((error) => server.config.logger.error(error.stack));
-        });
-      },
-    },
-  ],
   build: {
     rolldownOptions: {
       output: {

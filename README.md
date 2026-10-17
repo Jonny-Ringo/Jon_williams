@@ -34,7 +34,7 @@ Build setup follows [Vite's multi-page documentation](https://vite.dev/guide/bui
 npm run deploy:check
 ```
 
-This builds the current Vite site and resume, prepares deployment copies, and prints a local preview command. It creates neither a wallet nor upload requests. Review the generated site and `.arweave-deploy/plan.json` before publishing.
+This builds the current Vite site, includes the supplied resume PDF, prepares deployment copies, and prints a local preview command. It creates neither a wallet nor upload requests. Review the generated site and `.arweave-deploy/plan.json` before publishing.
 
 ```sh
 npm run deploy
@@ -60,7 +60,8 @@ The script also works directly: `node deploy-personal-site.mjs --dry-run` or `no
 - `src/styles.css`: shared design system, responsive layouts, and print resume styles.
 - `src/themes.css`: crisp white/blue and dark navy palettes, selected automatically with `prefers-color-scheme`. Browser preference changes apply immediately; there is no manual override or stored theme.
 - `src/main.js`: project dialogs, email copying, and legacy-link compatibility.
-- `scripts/resume-content.js` and `scripts/generate-resume.js`: extract career content and create the downloadable PDF using PDFKit during Vite startup/build. PDF libraries are build tools and are not shipped as browser JavaScript.
+- `public/jon-williams-resume.pdf`: the supplied `Jon_Williams_Resume_2026.pdf`, served unchanged by the career page's download link and tracked in Git.
+- `scripts/resume-content.js` and `scripts/generate-resume.js`: optional tools for creating a draft from the career content at `artifacts/jon-williams-resume-draft.pdf`. They do not run during Vite startup/build or overwrite the supplied resume. PDF libraries are development tools and are not shipped as browser JavaScript.
 - `imgs/`: original personal photos and other existing assets. Only referenced images enter the production build.
 - Project previews use the supplied DumDumz artwork, The Eye's logo (`eyecon2.png`), and AO Alien mascot. The DumDumz are shown as assets sold on AOction House, not artwork authored by Jon; collectible numbers await confirmation.
 - `imgs/the-eye-light.png` and `imgs/the-eye-dark.png`: matching static dashboard screenshots captured in September 2026 from [The Eye](https://eye-of-ao.arweave.net/). Native `<picture>` sources follow the browser theme in both the homepage and project dialog. These are snapshots, not a live metrics feed. Refresh both together with `node scripts/capture-eye.js`.
@@ -70,7 +71,7 @@ The script also works directly: `node deploy-personal-site.mjs --dry-run` or `no
 
 The footer website-building invitation is on both pages. Its email link includes a website inquiry subject. Contact buttons use `mailto:` to request the visitor's configured email application. Both contact sections also provide Copy email as an alternative when no working mail handler is configured. There is no form pretending to submit to an unconfigured backend.
 
-The resume link downloads `jon-williams-resume.pdf` directly, without opening a print dialog or requiring JavaScript. Visitors can print the saved file locally. Vite regenerates it at startup, when the career HTML changes in development, and on every production build. The PDF uses the visible career page as its source, plus additional role context in the inert `#resume-context` template at the bottom of `career/index.html`. Edit both kinds of content there; do not manually edit the generated PDF. To regenerate it independently, run `node scripts/generate-resume.js`. Browser printing still has a basic stylesheet for visitors who choose to print the web page themselves.
+The resume link downloads `jon-williams-resume.pdf` directly, without opening a print dialog or requiring JavaScript. Visitors can print the saved file locally. To update the download, replace `public/jon-williams-resume.pdf` with the approved PDF, then rebuild and deploy. Vite copies this file unchanged; editing the career page does not alter it. To create a separate draft from the visible career content and inert `#resume-context` template, run `node scripts/generate-resume.js` and review `artifacts/jon-williams-resume-draft.pdf`. Browser printing still has a basic stylesheet for visitors who choose to print the web page themselves.
 
 ## Content to refine together
 
@@ -104,4 +105,4 @@ npm test
 npm run test:deploy
 ```
 
-The tests run against the production build. They cover desktop/tablet/mobile overflow and assets, automated WCAG accessibility checks, keyboard interaction with project dialogs, career navigation and old links, clipboard success/failure, direct PDF downloads, PDF content alignment and extra context, and navigation without JavaScript.
+The tests run against the production build. They cover desktop/tablet/mobile overflow and assets, automated WCAG accessibility checks, keyboard interaction with project dialogs, career navigation and old links, clipboard success/failure, direct PDF downloads matching the supplied file, and navigation without JavaScript.

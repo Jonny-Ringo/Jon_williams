@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { readResumeContent } from '../scripts/resume-content.js';
 
 for (const colorScheme of ['light', 'dark']) {
   for (const width of [375, 768, 1440]) {
@@ -184,13 +183,14 @@ test('resume downloads a complete PDF without requesting a printer', async ({ pa
   const path = testInfo.outputPath('resume.pdf');
   await download.saveAs(path);
   const bytes = await readFile(path);
+  const suppliedResume = await readFile(new URL('../public/jon-williams-resume.pdf', import.meta.url));
+  expect(bytes.equals(suppliedResume)).toBe(true);
   expect(bytes.subarray(0, 5).toString()).toBe('%PDF-');
   const task = getDocument({ data: new Uint8Array(bytes), useSystemFonts: true });
   try {
     const pdf = await task.promise;
     expect(pdf.numPages).toBe(2);
     const pages = [];
-    const urls = [];
     for (let i = 1; i <= pdf.numPages; i++) {
       const pdfPage = await pdf.getPage(i);
       const content = await pdfPage.getTextContent();
@@ -201,29 +201,9 @@ test('resume downloads a complete PDF without requesting a printer', async ({ pa
           .join(' ')
           .replace(/\s+/g, ' '),
       );
-      // Text must stay inside the page rather than being clipped or pushed into a footer.
-      for (const item of strings.filter((item) => item.str.trim())) {
-        expect(item.transform[4]).toBeGreaterThanOrEqual(40);
-        expect(item.transform[4] + item.width).toBeLessThanOrEqual(570);
-        expect(item.transform[5]).toBeGreaterThan(28);
-      }
-      urls.push(
-        ...(await pdfPage.getAnnotations()).map((annotation) => annotation.url).filter(Boolean),
-      );
     }
     const text = pages.join(' ');
-    const source = await readResumeContent();
-    const values = (value) =>
-      typeof value === 'string' ? [value] : Object.values(value).flatMap(values);
-    for (const value of values(source))
-      expect(text).toContain(
-        value.replace('https://github.com/Jonny-Ringo', 'github.com/Jonny-Ringo'),
-      );
-    for (const link of source.projects.flatMap((project) => project.links))
-      expect(urls).toContain(link.url);
-    expect(pages[0]).toContain('Technical Support Specialist');
-    expect(pages[1]).toContain('AI Proficiency');
-    expect(text).toContain('Maintained PPE and ergonomic practices');
+    expect(text).toMatch(/Jon\s+(?:K\.?\s+)?Williams/i);
   } finally {
     await task.destroy();
   }

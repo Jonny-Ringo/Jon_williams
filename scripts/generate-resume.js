@@ -109,8 +109,9 @@ export async function generateResume() {
   }
   doc.end();
   const pdf = await complete;
-  await mkdir(new URL('../public/', import.meta.url), { recursive: true });
-  await writeFile(new URL('../public/jon-williams-resume.pdf', import.meta.url), pdf);
+  // Keep generated drafts separate from the supplied resume published by the site.
+  await mkdir(new URL('../artifacts/', import.meta.url), { recursive: true });
+  await writeFile(new URL('../artifacts/jon-williams-resume-draft.pdf', import.meta.url), pdf);
   return { pages: count, bytes: pdf.length };
 }
 
