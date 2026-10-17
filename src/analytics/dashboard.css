@@ -1,0 +1,214 @@
+.analytics-main {
+  padding-block: 65px 70px;
+}
+.analytics-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 32px;
+  margin-bottom: 28px;
+}
+.analytics-heading h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.055em;
+  margin: 12px 0 18px;
+}
+.analytics-heading p,
+.analytics-status,
+.analytics-notes p {
+  color: var(--muted);
+}
+#analytics-controls label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+.analytics-actions {
+  display: flex;
+  gap: 10px;
+}
+.analytics-actions select {
+  font: inherit;
+  font-size: 0.85rem;
+  border: 1px solid var(--strong-border);
+  border-radius: 6px;
+  padding: 12px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.analytics-status {
+  min-height: 28px;
+  margin-block: 24px;
+  font-size: 0.85rem;
+}
+.analytics-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.analytics-metrics article,
+.analytics-panel {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 26px;
+}
+.analytics-metrics h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.analytics-metrics strong {
+  display: block;
+  font-size: 2.8rem;
+  letter-spacing: -0.05em;
+  color: var(--blue);
+  margin-block: 8px;
+}
+.analytics-metrics p {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.analytics-panel {
+  margin-top: 24px;
+}
+.analytics-panel h2,
+.analytics-notes h2 {
+  font-size: 1.15rem;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+.analytics-breakdowns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.analytics-panel dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  font-size: 0.9rem;
+}
+.analytics-panel dd {
+  margin: 0;
+  font-weight: 700;
+}
+.analytics-panel dt {
+  color: var(--muted);
+}
+.analytics-bars {
+  display: flex;
+  gap: 3px;
+  height: 170px;
+  align-items: end;
+  border-bottom: 1px solid var(--strong-border);
+  margin-top: 30px;
+}
+.analytics-bars span {
+  flex: 1;
+  min-height: 2px;
+  background: var(--blue);
+  border-radius: 3px 3px 0 0;
+}
+.analytics-bars span[style='height: 0%;'] {
+  background: var(--border);
+}
+.analytics-chart-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  margin: 10px 0 24px;
+}
+.analytics-panel summary {
+  cursor: pointer;
+  color: var(--blue);
+  font-size: 0.8rem;
+}
+.analytics-table-scroll {
+  overflow-x: auto;
+  max-height: 420px;
+}
+.analytics-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: left;
+}
+.analytics-panel td,
+.analytics-panel th {
+  padding: 14px 12px 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.analytics-panel th {
+  font-weight: 700;
+}
+.analytics-panel td {
+  color: var(--muted);
+}
+.analytics-notes {
+  max-width: 800px;
+  margin-top: 48px;
+}
+.analytics-notes p {
+  font-size: 0.85rem;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.analytics-exclude {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  margin-block: 24px 10px;
+}
+.analytics-exclude input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+}
+.analytics-page .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.analytics-page [hidden] {
+  display: none !important;
+}
+@media (max-width: 800px) {
+  .analytics-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+  .analytics-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .analytics-breakdowns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+@media (max-width: 480px) {
+  .analytics-main {
+    padding-top: 35px;
+  }
+  .analytics-metrics {
+    gap: 10px;
+  }
+  .analytics-metrics article,
+  .analytics-panel {
+    padding: 18px;
+  }
+  .analytics-metrics strong {
+    font-size: 2.2rem;
+  }
+  .analytics-chart-labels {
+    font-size: 0.6rem;
+  }
+}

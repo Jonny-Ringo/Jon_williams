@@ -1,0 +1,16 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+artifacts/
+.arweave-deploy/
+# Local historical backup containing private reference contact details.
+legacy/
+wallet.json
+public/jon-williams-resume.pdf
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Public site analytics for Jon Williams’s personal site." />
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=2" />
+    <title>Site Analytics — Jon Williams</title>
+    <script type="module" src="../src/analytics/dashboard.js"></script>
+  </head>
+  <body class="analytics-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header wrap">
+      <a class="brand" href="../" aria-label="Jon Williams home"
+        ><span class="brand-mark">j<span>/</span>w</span><span>Jon Williams</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="../">Home</a><a href="../career/">Career</a
+        ><a href="./" aria-current="page">Analytics</a>
+      </nav>
+      <a class="header-contact" href="mailto:jon.k.williams.711@gmail.com"
+        >Say hello <span aria-hidden="true">↗</span></a
+      >
+    </header>
+    <main id="main" class="wrap analytics-main">
+      <div class="analytics-heading">
+        <div>
+          <p class="eyebrow">Behind the Site</p>
+          <h1>Site Analytics</h1>
+          <p>A small window into how people use this site.</p>
+        </div>
+        <form id="analytics-controls" hidden>
+          <label for="analytics-range">Date range (UTC)</label>
+          <div class="analytics-actions">
+            <select id="analytics-range" name="range">
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option></select
+            ><button class="button button-outline" type="submit">Refresh</button>
+          </div>
+        </form>
+      </div>
+      <p id="analytics-status" class="analytics-status" role="status" aria-live="polite">
+        Enable JavaScript to load site activity.
+      </p>
+      <noscript
+        ><p>
+          JavaScript is needed to read the public analytics records. The rest of the site works
+          without it.
+        </p></noscript
+      >
+      <div id="analytics-results" aria-busy="true" hidden>
+        <div class="analytics-metrics">
+          <article>
+            <h2>Page Views</h2>
+            <strong data-metric="views">—</strong>
+            <p>Home + career</p>
+          </article>
+          <article>
+            <h2>Sessions</h2>
+            <strong data-metric="sessions">—</strong>
+            <p>Approximate visits, not people</p>
+          </article>
+          <article>
+            <h2>Resume Clicks</h2>
+            <strong data-metric="resume">—</strong>
+            <p>PDF download link</p>
+          </article>
+          <article>
+            <h2>Contact Clicks</h2>
+            <strong data-metric="contact">—</strong>
+            <p>Email, Gmail + copy button</p>
+          </article>
+        </div>
+        <section class="analytics-panel" aria-labelledby="traffic-title">
+          <h2 id="traffic-title">Page Views Over Time</h2>
+          <div id="analytics-chart" class="analytics-chart" aria-label="Daily page views">
+            <p>Waiting for data.</p>
+          </div>
+          <details>
+            <summary>View Daily Totals</summary>
+            <div class="analytics-table-scroll">
+              <table>
+                <caption class="visually-hidden">
+                  Daily page views, UTC
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Date (UTC)</th>
+                    <th scope="col">Page views</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-daily"></tbody>
+              </table>
+            </div>
+          </details>
+        </section>
+        <div class="analytics-breakdowns">
+          <section class="analytics-panel" aria-labelledby="pages-title">
+            <h2 id="pages-title">Pages</h2>
+            <dl id="analytics-pages">
+              <dt>Home</dt>
+              <dd>—</dd>
+              <dt>Career</dt>
+              <dd>—</dd>
+            </dl>
+          </section>
+          <section class="analytics-panel" aria-labelledby="actions-title">
+            <h2 id="actions-title">Interactions</h2>
+            <dl id="analytics-events"></dl>
+          </section>
+        </div>
+        <section class="analytics-panel" aria-labelledby="recent-title">
+          <h2 id="recent-title">Recent Activity</h2>
+          <div class="analytics-table-scroll">
+            <table>
+              <caption class="visually-hidden">
+                Latest 20 recorded events
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Time (UTC)</th>
+                  <th scope="col">Page</th>
+                  <th scope="col">Activity</th>
+                </tr>
+              </thead>
+              <tbody id="analytics-recent">
+                <tr>
+                  <td colspan="3">Waiting for data.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <section class="analytics-notes" aria-labelledby="about-analytics">
+        <h2 id="about-analytics">About These Numbers</h2>
+        <p>
+          These are public, permanent records on Arweave. This site records the page name, selected
+          button clicks, time, and a random session ID. It does not include names, email addresses,
+          IP addresses, referrers, or full browsing URLs in its records. The network services
+          receiving requests can still see connection information.
+        </p>
+        <p>
+          Sessions expire after 30 minutes of inactivity or when a tab closes. Counts are
+          approximate: blocked tracking, quick exits, and indexing delays can leave activity out.
+          Clicks do not confirm a download or a message. Public records can be submitted by others,
+          so these are not audited visitor counts.
+        </p>
+        <p>
+          Local previews and this dashboard do not record visits. Do Not Track and Global Privacy
+          Control are respected.
+        </p>
+        <label class="analytics-exclude"
+          ><input id="analytics-exclude" type="checkbox" disabled /> Exclude my visits in this
+          browser</label
+        >
+        <p id="analytics-preference" role="status"></p>
+      </section>
+    </main>
+    <footer class="wrap">
+      <div class="site-footer">
+        <a class="brand-mark" href="../" aria-label="Back to home">j<span>/</span>w</a
+        ><span><span data-year>2026</span> Jon Williams</span>
+        <div>
+          <a href="../">Home</a><a href="../career/">Career</a>
+          ><a href="./" aria-current="page">Analytics</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
