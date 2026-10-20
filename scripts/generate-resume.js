@@ -96,6 +96,15 @@ export async function generateResume() {
       paragraph(`${link.label}: ${link.url}`, { size: 9, color: '#1253a3', link: link.url });
     y += 6;
   }
+  if (content.education.length) {
+    heading('Education & Training');
+    for (const entry of content.education) {
+      space(65);
+      paragraph(entry.institution, { size: 11, bold: true });
+      paragraph(entry.dates, { size: 8.5, color: '#526174' });
+      paragraph(entry.qualification);
+    }
+  }
   paragraph(content.references, { size: 9, color: '#526174', gap: 0 });
   const { count } = doc.bufferedPageRange();
   for (let i = 0; i < count; i++) {

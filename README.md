@@ -62,7 +62,8 @@ The script also works directly: `node deploy-personal-site.mjs --dry-run` or `no
 - `src/styles.css`: shared design system, responsive layouts, and print resume styles.
 - `src/themes.css`: crisp white/blue and dark navy palettes, selected automatically with `prefers-color-scheme`. Browser preference changes apply immediately; there is no manual override or stored theme.
 - `src/main.js`: project dialogs, email copying, and legacy-link compatibility.
-- `public/jon-williams-resume.pdf`: the supplied `Jon_Williams_Resume_2026.pdf`, served unchanged by the career page's download link and tracked in Git.
+- `Jon_Williams_Executive_Technical_Resume_2026.pdf`: the supplied source for the career page’s experience, skills, projects, and education.
+- `public/jon-williams-resume.pdf`: a losslessly optimized copy of the supplied executive/technical resume, tracked in Git and served by the career page’s download link. Text and rendered pages were verified against the original; the smaller file fits the existing Arweave upload limit.
 - `scripts/resume-content.js` and `scripts/generate-resume.js`: optional tools for creating a draft from the career content at `artifacts/jon-williams-resume-draft.pdf`. They do not run during Vite startup/build or overwrite the supplied resume. PDF libraries are development tools and are not shipped as browser JavaScript.
 - `imgs/`: original personal photos and other existing assets. Only referenced images enter the production build.
 - Project previews use the supplied DumDumz artwork, The Eye's logo (`eyecon2.png`), and AO Alien mascot. The DumDumz are shown as assets sold on AOction House, not artwork authored by Jon; collectible numbers await confirmation.
@@ -73,22 +74,21 @@ The script also works directly: `node deploy-personal-site.mjs --dry-run` or `no
 
 The footer website-building invitation is on both pages. Its email link includes a website inquiry subject. Contact buttons use `mailto:` to request the visitor's configured email application. Both contact sections also provide Copy email as an alternative when no working mail handler is configured. There is no form pretending to submit to an unconfigured backend.
 
-The resume link downloads `jon-williams-resume.pdf` directly, without opening a print dialog or requiring JavaScript. Visitors can print the saved file locally. To update the download, replace `public/jon-williams-resume.pdf` with the approved PDF, then rebuild and deploy. Vite copies this file unchanged; editing the career page does not alter it. To create a separate draft from the visible career content and inert `#resume-context` template, run `node scripts/generate-resume.js` and review `artifacts/jon-williams-resume-draft.pdf`. Browser printing still has a basic stylesheet for visitors who choose to print the web page themselves.
+The resume link downloads `jon-williams-resume.pdf` directly, without opening a print dialog or requiring JavaScript. Visitors can print the saved file locally. To update the download, replace `public/jon-williams-resume.pdf` with the approved PDF, then rebuild and deploy. Vite copies this file unchanged; editing the career page does not alter it. Keep the supplied original at the repository root. If optimization is needed for Arweave, verify that the download’s text and rendered pages match the original and run the deployment checks. To create a separate draft from the visible career content, run `node scripts/generate-resume.js` and review `artifacts/jon-williams-resume-draft.pdf`. Browser printing still has a basic stylesheet for visitors who choose to print the web page themselves.
 
 ## Content to refine together
 
-The career copy covers technical operations, equipment troubleshooting, customer support, community management, and leadership. AI proficiency is one tile under Skills, alongside Agentic Coding in the development skills. Official project account management includes X (Twitter) and LinkedIn. Individual PR examples were intentionally removed; visitors can explore the linked GitHub profile.
+The career copy follows the supplied executive/technical resume: strategic partnerships and founder relationships alongside hands-on development, technical customer success, infrastructure troubleshooting, and analytics. Forward Research and DA Operations are separate current roles. Intel and Retronix are separate earlier roles with their own dates. Projects and education follow the same source. AI proficiency remains part of Skills. Individual PR examples are not listed; visitors can explore the linked GitHub profile.
 
 Community bot experience means selecting and configuring existing bots, not developing the bots. Keep this distinction in future edits.
 
 Before sharing with employers, review these inherited details:
 
-- Confirm work history since the original 2025 site, especially individual community roles and their end dates. The combined role is labeled “From Feb 2021” instead of assuming every engagement continues today.
-- Confirm the original “80,000+ members” figure and the Intel role title / employment relationship.
-- Add two or three recent personal apps with working links, screenshots, and concrete examples of the problem solved. The Eye has a real dashboard preview and live link; the community card highlights projects Jon has worked with.
-- Add specific PC repair/building experience, certifications, or equipment expertise that you want employers to see. None have been invented.
+- Keep role dates, titles, and the “80,000+ members” figure in sync with future resume revisions.
+- Refresh project screenshots as the tools evolve. The Eye has a dashboard preview and live link; the career page also describes Permaweb Analytics and AOction House.
+- Add further equipment expertise or certifications only when supplied.
 - Confirm your preferred contact address, replace older photos if desired, and supply LinkedIn or other profiles you want linked.
-- After choosing a domain, add canonical URLs, a sitemap, and a dedicated social-sharing image. Page titles and descriptions are already in place.
+- Consider canonical URLs, a sitemap, and a dedicated social-sharing image for `jonwilliams.xyz`. Page titles and descriptions are already in place.
 
 References are available on request; third-party private contact details from the previous site are not republished in the new site.
 

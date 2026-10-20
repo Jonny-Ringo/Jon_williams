@@ -5,8 +5,9 @@ import eyeDarkPreview from '../imgs/the-eye-dark.png';
 export const projects = {
   auction: {
     category: 'WEB DEVELOPMENT / ARWEAVE & AO',
-    title: 'AOction House & FunctionOverForm',
-    intro: 'On-chain auctions and playable digital collectibles on Arweave and AO.',
+    title: 'AOction House',
+    intro:
+      'An auction platform on Arweave and AO, supporting listing, bidding, refunds, settlement, and asset transfers.',
     sections: [
       [
         'The Idea',
@@ -14,7 +15,7 @@ export const projects = {
       ],
       [
         'My Contribution',
-        'Responsive web interfaces, game functionality, and interactive features, using HTML, CSS, JavaScript, and Lua on AO.',
+        'Developed auction interfaces and flows using HTML, CSS, JavaScript, and Lua on AO. Related FunctionOverForm work explored playable digital collectibles.',
       ],
       [
         'Featured Assets',
@@ -29,7 +30,8 @@ export const projects = {
   metrics: {
     category: 'GRAPHQL / POWERSHELL / DATA VISUALIZATION',
     title: 'The Eye',
-    intro: 'A dashboard for Arweave and AO network activity, transaction metrics, and reports.',
+    intro:
+      'Ecosystem analytics and monitoring for Arweave and AO: developer activity, transactions, infrastructure health, and node/network signals.',
     preview: {
       src: eyePreview,
       darkSrc: eyeDarkPreview,
@@ -39,11 +41,11 @@ export const projects = {
     sections: [
       [
         'The Work',
-        'Collected on-chain metrics with GraphQL and compiled daily reports on activity and engagement.',
+        'Built and maintained dashboards that track ecosystem activity and infrastructure health, including a 3D node visualization.',
       ],
       [
         'My Contribution',
-        'Data collection, reporting, and visualizations to help monitor trends and platform activity.',
+        'Data collection, GraphQL queries, operational reporting, and visualizations that help teams understand network activity and investigate issues.',
       ],
     ],
     links: [
@@ -52,17 +54,18 @@ export const projects = {
     ],
   },
   community: {
-    category: 'COMMUNITY OPERATIONS / AUTOMATION',
-    title: 'Community Operations',
-    intro: 'Moderation tools, resources, online and in-person events, and day-to-day coordination.',
+    category: 'LEADERSHIP / TECHNICAL CUSTOMER SUCCESS',
+    title: 'Technical & Community Operations',
+    intro:
+      'Connecting founder relationships, technical support, and operational delivery across digital products and ecosystems.',
     sections: [
       [
         'The Context',
-        'Community operations and advisory roles spanning Forward Research (Arweave + AO), Sarcophagus, Polkadot, Decent DAO, and DAO Academy.',
+        'Staff Officer & Community Lead at Forward Research, and Founder & CEO of DA Operations (formerly DAO Academy). Selected ecosystem experience includes Sarcophagus, Polkadot, Decent DAO, Arweave, and AO.',
       ],
       [
         'My Contribution',
-        'Selected and configured bots for moderation and coordination, managed official project accounts on X (Twitter), LinkedIn, and other social platforms, organized events and AMAs, developed community websites and resource libraries, and helped coordinate proposals and treasury operations. Also traveled to industry events, helped set up booths, and spoke with attendees about the projects.',
+        'Work directly with founders and senior leadership on partnerships, grants, and technical support. Own service design, client relationships, onboarding, and escalation programs; investigate technical issues with engineering teams and build automation, knowledge workflows, and reporting that connect customer feedback to product priorities.',
       ],
     ],
     links: [['View my experience', './career/#experience']],

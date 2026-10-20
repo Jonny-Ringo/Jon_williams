@@ -3,7 +3,7 @@ import { load } from 'cheerio';
 
 export const careerPath = new URL('../career/index.html', import.meta.url);
 
-// The visible career page is the source of truth; the inert template adds detail for the PDF.
+// Optional drafts use the current career copy; the published PDF is supplied separately.
 export async function readResumeContent() {
   const $ = load(await readFile(careerPath, 'utf8'));
   const text = (element) =>
@@ -43,7 +43,7 @@ export async function readResumeContent() {
           bullets: list(skill.find('li')),
         };
       }),
-    projects: $('.career-projects article')
+    projects: $('#selected-work .career-projects article')
       .toArray()
       .map((element) => {
         const project = $(element);
@@ -59,6 +59,16 @@ export async function readResumeContent() {
               label: text($(link)).replace(/\s*↗$/, ''),
               url: $(link).attr('href'),
             })),
+        };
+      }),
+    education: $('#education article')
+      .toArray()
+      .map((element) => {
+        const entry = $(element);
+        return {
+          institution: text(entry.find('h3')),
+          dates: text(entry.find('.mini-label')),
+          qualification: text(entry.find('p')),
         };
       }),
     references: text($('.career-contact-actions > span')),
