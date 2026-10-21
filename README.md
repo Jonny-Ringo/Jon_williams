@@ -70,6 +70,7 @@ The script also works directly: `node deploy-personal-site.mjs --dry-run` or `no
 - `imgs/the-eye-light.png` and `imgs/the-eye-dark.png`: matching static dashboard screenshots captured in September 2026 from [The Eye](https://eye-of-ao.arweave.net/). Native `<picture>` sources follow the browser theme in both the homepage and project dialog. These are snapshots, not a live metrics feed. Refresh both together with `node scripts/capture-eye.js`.
 - The community operations preview groups Polkadot, Arweave, DAO Academy (`imgs/logo.png`), Sarcophagus, and Decent DAO, with the first two most prominent.
 - `public/favicon.svg`: the site monogram.
+- `public/jon-williams-portrait.jpg`: an unchanged copy of `imgs/me.jpg` for social previews. Homepage and career Open Graph/X metadata use its stable absolute URL at `https://jonwilliams.xyz/jon-williams-portrait.jpg`, including when the pages are shared from Arweave. Replace both files and update the image dimensions in metadata if the portrait changes. The square X summary card preserves the portrait framing.
 - `legacy/` (local only, ignored by Git): historical source backups containing private reference contact details. These are not required to build or deploy the site.
 
 The footer website-building invitation is on both pages. Its email link includes a website inquiry subject. Contact buttons use `mailto:` to request the visitor's configured email application. Both contact sections also provide Copy email as an alternative when no working mail handler is configured. There is no form pretending to submit to an unconfigured backend.
@@ -88,7 +89,7 @@ Before sharing with employers, review these inherited details:
 - Refresh project screenshots as the tools evolve. The Eye has a dashboard preview and live link; the career page also describes Permaweb Analytics and AOction House.
 - Add further equipment expertise or certifications only when supplied.
 - Confirm your preferred contact address, replace older photos if desired, and supply LinkedIn or other profiles you want linked.
-- Consider canonical URLs, a sitemap, and a dedicated social-sharing image for `jonwilliams.xyz`. Page titles and descriptions are already in place.
+- Consider adding a sitemap for `jonwilliams.xyz`. Page titles, descriptions, canonical URLs, and portrait preview metadata are in place for the homepage and career page.
 
 References are available on request; third-party private contact details from the previous site are not republished in the new site.
 
