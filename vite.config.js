@@ -3,6 +3,18 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   base: './',
+  plugins: [
+    {
+      name: 'career-photo-links',
+      // Vite fingerprints image sources, but leaves ordinary anchor URLs alone.
+      // Keep each full-size link pointing at its image, including without JavaScript.
+      transformIndexHtml: {
+        order: 'post',
+        handler: (html) =>
+          html.replace(/href="[^"]+"(\s+data-work-photo>\s*<img\s+src="([^"]+)")/g, 'href="$2"$1'),
+      },
+    },
+  ],
   build: {
     rolldownOptions: {
       output: {

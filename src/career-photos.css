@@ -1,0 +1,221 @@
+.career-photos {
+  min-width: 0;
+}
+
+.work-snapshot {
+  margin: 0 auto 46px;
+  max-width: 330px;
+}
+
+.photo-stack {
+  position: relative;
+  margin: 12px 12px 26px;
+}
+
+.photo-stack-event {
+  aspect-ratio: 1 / 1.42;
+}
+.photo-stack-rigs {
+  aspect-ratio: 1 / 1.25;
+}
+
+.work-photo {
+  position: absolute;
+  display: block;
+  padding: 6px 6px 16px;
+  background: var(--surface-raised, #fff);
+  border: 1px solid var(--strong-border, #becbdd);
+  box-shadow: 0 8px 18px var(--shadow, #17325b14);
+  transform: rotate(var(--photo-angle));
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+  cursor: zoom-in;
+}
+
+.work-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.work-photo:hover,
+.work-photo:focus-visible {
+  z-index: 5;
+  transform: rotate(0deg) scale(1.04);
+  box-shadow: 0 12px 26px var(--shadow, #17325b14);
+}
+
+.work-photo:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
+}
+
+.event-swag {
+  width: 57%;
+  left: 0;
+  top: 0;
+  --photo-angle: -6deg;
+}
+.event-mascot {
+  width: 57%;
+  right: 0;
+  top: 6%;
+  --photo-angle: 6deg;
+}
+.event-booth {
+  width: 86%;
+  left: 6%;
+  bottom: 0;
+  --photo-angle: -3deg;
+}
+.rig-detail {
+  width: 90%;
+  left: 0;
+  top: 0;
+  --photo-angle: -5deg;
+}
+.rig-build {
+  width: 90%;
+  right: 0;
+  bottom: 0;
+  --photo-angle: 5deg;
+}
+
+.snapshot-label {
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+
+.work-snapshot h3 {
+  margin: 7px 0 9px;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+}
+.work-snapshot p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.photo-view-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: -22px 0 0;
+}
+
+.career-photo-dialog {
+  width: min(1000px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.career-photo-dialog::backdrop {
+  background: #040a14de;
+}
+.career-photo-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.career-photo-dialog h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.career-photo-close {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border: 1px solid var(--strong-border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.career-photo-dialog img {
+  display: block;
+  width: 100%;
+  height: min(70dvh, 760px);
+  object-fit: contain;
+}
+.career-photo-dialog p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 14px 0 0;
+}
+body:has(.career-photo-dialog[open]) {
+  overflow: hidden;
+}
+
+@media screen and (min-width: 901px) {
+  .career-experience {
+    row-gap: 30px;
+    grid-template-rows: auto 1fr;
+  }
+  .career-experience > .resume-section-label {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .career-experience > .experience-list {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .career-photos {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .career-experience {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .career-photos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px;
+    padding-top: 24px;
+  }
+  .work-snapshot {
+    width: 100%;
+    margin-bottom: 0;
+  }
+  .photo-view-hint {
+    grid-column: 1 / -1;
+    margin: 0;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .career-photos {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-photo {
+    transition: none;
+  }
+}
+
+@media print {
+  .career-photos,
+  .career-photo-dialog {
+    display: none !important;
+  }
+}

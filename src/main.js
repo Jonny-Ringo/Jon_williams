@@ -1,6 +1,8 @@
 import '@fontsource-variable/manrope';
 import './styles.css';
 import './themes.css';
+import './career-photos.css';
+import './career-photos.js';
 import { projects } from './projects.js';
 import { startAnalytics } from './analytics/tracker.js';
 
