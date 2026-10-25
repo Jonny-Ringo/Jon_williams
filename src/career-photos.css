@@ -2,6 +2,42 @@
   min-width: 0;
 }
 
+.training-certificate {
+  max-width: 330px;
+  margin: 30px 8px 0;
+}
+
+.certificate-preview {
+  display: block;
+  padding: 6px;
+  background: var(--surface-raised, #fff);
+  border: 1px solid var(--strong-border, #becbdd);
+  box-shadow: 0 8px 18px var(--shadow, #17325b14);
+  transform: rotate(-3deg);
+  transition: transform 180ms ease;
+}
+
+.certificate-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.certificate-preview:hover,
+.certificate-preview:focus-visible {
+  transform: rotate(0deg);
+}
+
+.certificate-preview:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
+}
+
+.training-certificate figcaption {
+  margin-top: 24px;
+  font-size: 12px;
+}
+
 .work-snapshot {
   margin: 0 auto 46px;
   max-width: 330px;
@@ -208,13 +244,15 @@ body:has(.career-photo-dialog[open]) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .work-photo {
+  .work-photo,
+  .certificate-preview {
     transition: none;
   }
 }
 
 @media print {
   .career-photos,
+  .training-certificate,
   .career-photo-dialog {
     display: none !important;
   }

@@ -11,7 +11,7 @@ export async function generateResume() {
     margins: { top: 42, left: 46, right: 46, bottom: 28 },
     bufferPages: true,
     info: {
-      Title: `${content.name} — Resume`,
+      Title: `${content.name} | Resume`,
       Author: content.name,
       Subject: 'Experience, skills, AI proficiency, and projects',
       Creator: 'Jon Williams personal site',

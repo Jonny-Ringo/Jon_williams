@@ -20,7 +20,10 @@ if (photoLinks.length) {
     )
       dialog.close();
   });
-  dialog.addEventListener('close', () => content.replaceChildren());
+  dialog.addEventListener('close', () => {
+    // A queued close event may arrive after another photo has already opened.
+    if (!dialog.open) content.replaceChildren();
+  });
 
   photoLinks.forEach((link) => {
     link.addEventListener('click', (event) => {
