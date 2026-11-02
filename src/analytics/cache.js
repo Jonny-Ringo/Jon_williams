@@ -11,6 +11,24 @@ async function pool(items, work, concurrency = 2) {
   );
 }
 
+// Let a fast public cache paint first, without making indexing wait for a
+// stalled gateway. Clear the timer/listener whichever path finishes first.
+function cacheHeadStart(task, signal) {
+  signal.throwIfAborted();
+  return new Promise((resolve, reject) => {
+    const finish = (error) => {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', aborted);
+      if (error) reject(error);
+      else resolve();
+    };
+    const aborted = () => finish(signal.reason);
+    const timer = setTimeout(() => finish(), 750);
+    signal.addEventListener('abort', aborted, { once: true });
+    task.then(() => finish(), finish);
+  });
+}
+
 // All network/storage dependencies can be replaced in tests. No uploads in tests
 // or local previews; the production caller explicitly supplies its privacy gate.
 export async function loadAnalytics({
@@ -24,7 +42,11 @@ export async function loadAnalytics({
   now = Date.now(),
   publish = createPublisher({ fetcher, canPublish }),
 }) {
+  signal.throwIfAborted();
   const windows = windowsFor(dates, now);
+  const closed = windows.filter((window) => window.closed).reverse();
+  const cacheStop = new AbortController();
+  const cacheReads = new Map(closed.map((window) => [window.start, new AbortController()]));
   const states = readLocal(storage, windowsFor(dateRange(120, now), now), now);
   const verified = new Set(),
     failed = new Set(),
@@ -81,7 +103,11 @@ export async function loadAnalytics({
           const merged = new Map((previous?.events || []).map((event) => [event.eventId, event]));
           for (const event of events) merged.set(event.eventId, event);
           events = [...merged.values()];
-        } else verified.add(window.start);
+        } else {
+          verified.add(window.start);
+          // A complete raw scan wins over any cache still in flight.
+          cacheReads.get(window.start)?.abort();
+        }
         states.set(window.start, {
           ...previous,
           events,
@@ -97,6 +123,7 @@ export async function loadAnalytics({
       }
       saveLocal(storage, states, now);
       emit('indexing');
+      if (closed.every((window) => verified.has(window.start))) cacheStop.abort();
     } catch (error) {
       if (signal.aborted) throw error;
       group.forEach((window) => failed.add(window.start));
@@ -106,55 +133,78 @@ export async function loadAnalytics({
 
   // The current week always refreshes immediately, alongside public discovery.
   const tail = refresh(windows.filter((window) => !window.closed)).catch(() => {});
-  const closed = windows.filter((window) => window.closed);
-  try {
-    const discovery = await discoverCaches(
-      closed,
-      AbortSignal.any([signal, AbortSignal.timeout(5000)]),
-      fetcher,
-    );
-    await pool(closed, async (window) => {
-      for (const candidate of discovery.candidates.get(window.start) || []) {
-        try {
-          const cached = await readPublicCache(
-            candidate,
-            window,
-            AbortSignal.any([signal, AbortSignal.timeout(8000)]),
-            fetcher,
-            now,
-          );
-          signal.throwIfAborted();
-          const local = states.get(window.start);
-          // A fresh local raw scan must not be replaced by an older public snapshot.
-          if (!local || local.checkedAt < cached.createdAt) {
-            states.set(window.start, {
-              events: cached.events,
-              checkedAt: cached.createdAt,
-              complete: true,
-              source: 'public',
-            });
-            cacheUsed = true;
-            saveLocal(storage, states, now);
-            emit('public');
+  const publicTask = (async () => {
+    try {
+      const discovery = await discoverCaches(
+        closed,
+        AbortSignal.any([signal, cacheStop.signal, AbortSignal.timeout(5000)]),
+        fetcher,
+      );
+      await pool(
+        closed,
+        async (window) => {
+          if (verified.has(window.start) || signal.aborted || cacheStop.signal.aborted) return;
+          const cacheSignal = AbortSignal.any([
+            signal,
+            cacheStop.signal,
+            cacheReads.get(window.start).signal,
+            AbortSignal.timeout(8000),
+          ]);
+          for (const candidate of discovery.candidates.get(window.start) || []) {
+            try {
+              const cached = await readPublicCache(candidate, window, cacheSignal, fetcher, now);
+              signal.throwIfAborted();
+              if (verified.has(window.start) || cacheSignal.aborted) return;
+              const local = states.get(window.start);
+              const baseline = local?.complete ? local : local?.previousComplete;
+              if (!baseline || baseline.checkedAt < cached.createdAt) {
+                const snapshot = {
+                  events: cached.events,
+                  checkedAt: cached.createdAt,
+                  complete: true,
+                  source: 'public',
+                };
+                // A partial raw scan may finish before the cache. Retain its new
+                // events, but only persist the complete snapshot as the fallback.
+                if (local && !local.complete) {
+                  const merged = new Map(cached.events.map((event) => [event.eventId, event]));
+                  for (const event of local.events) merged.set(event.eventId, event);
+                  states.set(window.start, {
+                    ...local,
+                    events: [...merged.values()],
+                    previousComplete: snapshot,
+                  });
+                } else states.set(window.start, snapshot);
+                cacheUsed = true;
+                saveLocal(storage, states, now);
+                emit('public');
+              }
+              break;
+            } catch {
+              if (cacheSignal.aborted) return;
+            }
           }
-          break;
-        } catch {
-          if (signal.aborted) return;
-        }
-      }
-    });
-  } catch {
-    /* Cache discovery failure falls back to original indexed records. */
-  }
-  await tail;
-  signal.throwIfAborted();
+        },
+        3,
+      );
+    } catch {
+      /* Cache discovery failure falls back to original indexed records. */
+    }
+  })();
 
-  // Fill missing windows first. Then verify every cached week, including old
-  // dates, so late indexing and corrections cannot remain hidden indefinitely.
-  const missing = closed.filter((window) => !states.has(window.start));
-  await refresh(missing);
-  const existing = closed.filter((window) => !missing.includes(window));
-  await pool(existing, (window) => refresh([window]));
+  await cacheHeadStart(publicTask, signal);
+  // Fill missing weeks first, newest first within each group. Raw scans run
+  // independently of cache downloads and the current week's query.
+  const history = [
+    ...closed.filter((window) => !states.has(window.start)),
+    ...closed.filter((window) => states.has(window.start)),
+  ];
+  try {
+    await Promise.all([tail, pool(history, (window) => refresh([window])), publicTask]);
+  } finally {
+    cacheStop.abort();
+  }
+  signal.throwIfAborted();
   emit('ready');
 
   // Publishing follows rendering and only uses complete, freshly indexed weeks.

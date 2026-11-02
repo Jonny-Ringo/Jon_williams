@@ -461,3 +461,147 @@ test('public cache reads support transaction-isolated gateway redirects', async 
     1,
   );
 });
+
+function stallUntilAborted(signal) {
+  return new Promise((_, reject) => {
+    if (signal.aborted) return reject(signal.reason);
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+  });
+}
+
+test('recent caches load first and stalled downloads cannot delay complete raw history', async () => {
+  const range = dateRange(30, now);
+  const closed = windowsFor(range, now).filter((w) => w.closed);
+  const events = closed.map((w, i) => event(i + 1, w.end));
+  const caches = await Promise.all(
+    closed.map((w, i) => fixture(w, [events[i]], String.fromCharCode(65 + i))),
+  );
+  const original = network({ events, caches });
+  const downloads = [],
+    states = [];
+  let aborted = 0;
+  await loadAnalytics({
+    dates: range,
+    now,
+    signal: AbortSignal.timeout(3000),
+    storage: storage(),
+    fetcher: async (url, options) => {
+      if (url !== QUERY_URL) {
+        downloads.push(url);
+        try {
+          return await stallUntilAborted(options.signal);
+        } finally {
+          aborted++;
+        }
+      }
+      return original(url, options);
+    },
+    onUpdate: (state) => states.push(state),
+  });
+  assert.deepEqual(
+    downloads.slice(0, 3),
+    caches
+      .slice(-3)
+      .reverse()
+      .map((c) => `https://arweave.net/${c.id}`),
+  );
+  assert.ok(aborted >= 3);
+  assert.equal(states.at(-1).events.length, events.length);
+  assert.equal(states.at(-1).verified, true);
+  assert.equal(states.at(-1).failed, false);
+});
+
+test('stalled discovery and current-week indexing do not block historical results', async () => {
+  const old = event(1, '2026-10-23');
+  const original = network({ events: [old] });
+  let releaseTail;
+  const tailGate = new Promise((resolve) => {
+    releaseTail = resolve;
+  });
+  let historyRendered = false;
+  await loadAnalytics({
+    dates,
+    now,
+    signal: AbortSignal.timeout(3000),
+    storage: storage(),
+    fetcher: async (url, options) => {
+      const tags = JSON.parse(options.body).variables.tags;
+      if (tags[0].values[0] === CACHE_APP) return stallUntilAborted(options.signal);
+      if (tags.find((t) => t.name === 'Timestamp').values.includes('2026-11-04')) await tailGate;
+      return original(url, options);
+    },
+    onUpdate: (state) => {
+      if (state.events.some((e) => e.eventId === old.eventId)) {
+        historyRendered = true;
+        releaseTail();
+      }
+    },
+  });
+  assert.equal(historyRendered, true);
+});
+
+test('a late public snapshot cannot resurrect events removed by a complete raw scan', async () => {
+  const old = event(1, '2026-10-23');
+  const cache = await fixture(windows[0], [old], 'M', now + 500);
+  const original = network({ caches: [cache] });
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const states = [];
+  await loadAnalytics({
+    dates,
+    now,
+    signal: AbortSignal.timeout(3000),
+    storage: storage(),
+    fetcher: async (url, options) => {
+      // Simulate a response already completing as its cancellation arrives.
+      if (url !== QUERY_URL) await gate;
+      return original(url, options);
+    },
+    onUpdate: (state) => {
+      states.push(state);
+      if (state.verified) release();
+    },
+  });
+  assert.equal(states.at(-1).verified, true);
+  assert.ok(states.every((state) => state.events.length === 0));
+});
+
+test('a cache arriving after a partial raw scan retains both sets of events without publishing', async () => {
+  const old = event(1, '2026-10-23'),
+    late = event(2, '2026-10-23');
+  const cache = await fixture(windows[0], [old]);
+  const original = network({ caches: [cache] });
+  const local = storage();
+  let release,
+    pages = 0,
+    last;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  await loadAnalytics({
+    dates,
+    now,
+    signal: AbortSignal.timeout(3000),
+    storage: local,
+    fetcher: async (url, options) => {
+      if (url !== QUERY_URL) await gate;
+      else {
+        const tags = JSON.parse(options.body).variables.tags;
+        if (tags.find((t) => t.name === 'Timestamp')?.values.includes(old.date))
+          return response([{ ...edge(late), cursor: String(pages++) }], true);
+      }
+      return original(url, options);
+    },
+    onUpdate: (state) => {
+      last = state;
+      if (state.partial) release();
+    },
+    canPublish: () => true,
+    publish: async () => assert.fail('A partial scan cannot publish'),
+  });
+  assert.equal(last.partial, true);
+  assert.equal(last.events.length, 2);
+  assert.deepEqual(readLocal(local, windows, now).get(windows[0].start).events, [old]);
+});

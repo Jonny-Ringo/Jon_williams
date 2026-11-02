@@ -19,11 +19,18 @@ They accelerate reporting without becoming an authoritative source of visits.
 1. Abort any previous load when the date range changes or Refresh is clicked.
 2. Validate local data and immediately display the selected cached dates.
 3. In parallel, discover public snapshots and index the current unfinished week.
-4. Load the newest usable public snapshot for each completed week. Preserve a
-   more recently checked local snapshot instead of replacing it with older data.
-5. Index missing completed windows and progressively display the results.
-6. Re-index every cached week in the selected range, two at a time. This catches
-   late indexing and corrections even for events many weeks old.
+4. Request completed weeks from newest to oldest, with up to three public cache
+   downloads running at once. Try the newest usable snapshot for each week.
+   Preserve a more recently checked local snapshot instead of replacing it.
+5. Give public discovery and downloads up to 750 ms to render first. If they
+   finish sooner, start raw-history queries immediately. Otherwise, start those
+   queries alongside the cache downloads without waiting for gateway timeouts
+   or the current week's query.
+6. Scan missing weeks first, then cached weeks, newest first within each group
+   and two raw-history queries at a time. Render each result as it arrives.
+   Every selected week is checked once, including old weeks, to catch late
+   indexing and corrections. A complete raw scan cancels that week's pending
+   cache download; late snapshots cannot overwrite its verified results.
 7. Replace each window after its complete scan, update local storage, and render
    corrected counts. Deduplicate by event ID and count sessions across the whole
    range, rather than adding weekly session totals.
@@ -38,6 +45,14 @@ event for an older week produces a new snapshot version for that week.
 The first visitor before any shared cache exists still needs to index records.
 Once a live visitor publishes and the gateway indexes the manifest, other
 visitors benefit. No background scheduler runs while the page is closed.
+
+This prevents a slow older cache from holding up recent activity or the raw-data
+fallback. Local data still renders immediately, and a fast public cache can
+render before raw history finishes. The 750 ms head start is not a promise that
+the full dashboard loads within that time; network speed and pagination still
+affect completion. If a raw scan is partial or fails, public downloads remain
+available as a fallback within their timeout. A late cache merges with partial
+raw results for display, while only its complete snapshot is saved locally.
 
 ## Seven-day windows and versions
 
@@ -129,8 +144,8 @@ uploaded last, after all referenced parts are accepted.
 
 ## Bounds, failures, and trust
 
-- Raw scans paginate 100 records at a time, up to 50 pages. Missing weeks can
-  share a scan; cached weeks are verified separately. Truncated scans are labeled
+- Raw scans paginate 100 records at a time, up to 50 pages per week. Completed
+  weeks are queried separately so each can render independently. Truncated scans are labeled
   partial and never published. Prior complete local snapshots survive partial scans.
 - Discovery reads at most 500 manifests and tries up to three candidates per
   window. Corrupt or unavailable snapshots fall back to indexed events. Failed
@@ -138,8 +153,10 @@ uploaded last, after all referenced parts are accepted.
 - Payloads stay under 90 KiB and signed ANS-104 items under 100 KiB. Larger
   windows use multiple parts. Readers cap streamed bytes, part counts, and total
   records at 5,000 per window before accepting a snapshot.
-- Initial discovery has a five-second deadline and each candidate an eight-second
-  deadline. Individual requests have a twenty-second timeout.
+- Initial discovery has a five-second deadline. Each week's initial cache reads
+  share an eight-second budget across candidates. Neither deadline delays raw
+  history beyond the 750 ms head start. Individual requests have a twenty-second
+  timeout. Once all completed weeks are verified, redundant discovery is canceled.
 - Local storage retains up to 120 days and drops oldest windows to fit a 3 MiB
   serialized budget. Denied storage, corrupt entries, and quota failures fall back
   to the network. Browser caches are separate for each origin.

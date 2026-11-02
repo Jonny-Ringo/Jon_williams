@@ -44,12 +44,14 @@ for (const colorScheme of ['light', 'dark']) {
   test(`analytics paginates and displays accessible real counts in ${colorScheme} mode`, async ({
     page,
   }) => {
-    let requests = 0;
+    let pagesForToday = 0;
     await page.route(QUERY_URL, async (route) => {
       const { variables } = route.request().postDataJSON();
       if (variables.tags[0].values[0] === CACHE_APP) return route.fulfill({ json: response([]) });
-      requests++;
       expect(variables.tags[2].values.length).toBeGreaterThan(0);
+      if (!variables.tags[2].values.includes(new Date().toISOString().slice(0, 10)))
+        return route.fulfill({ json: response([]) });
+      pagesForToday++;
       await route.fulfill({
         json: variables.after
           ? response([
@@ -67,7 +69,7 @@ for (const colorScheme of ['light', 'dark']) {
     await expect(page.locator('[data-metric="resume"]')).toHaveText('1');
     await expect(page.locator('[data-metric="contact"]')).toHaveText('1');
     await expect(page.locator('#analytics-status')).toContainText('Updated');
-    expect(requests).toBe(4); // Current week first, then uncovered completed weeks.
+    expect(pagesForToday).toBe(2); // Both pages were consumed, including the duplicate record.
     await expect(page.locator('#analytics-recent tr')).toHaveCount(4);
     await expect(page.locator('#analytics-daily tr')).toHaveCount(30);
     const lastBar = page.locator('.analytics-bar').last();
@@ -299,6 +301,68 @@ test('public history renders before reindexing, then local data survives an offl
     .locator('.analytics-panel')
     .first()
     .screenshot({ path: 'artifacts/analytics-tooltip-mobile.png' });
+});
+
+test('stalled cache payloads do not hold the dashboard behind gateway timeouts', async ({
+  page,
+}) => {
+  const dates = dateRange(30);
+  const window = windowsFor(dates)
+    .filter((item) => item.closed)
+    .at(-1);
+  const old = historicalRecord(41, window.dates[2]);
+  const late = historicalRecord(42, window.dates[2]);
+  const rows = pack([parseEvent(old.node, dates)]);
+  const hash = await digest(rows);
+  const manifestId = 'M'.repeat(43),
+    partId = 'P'.repeat(43);
+  let release,
+    partRequested = false;
+  const stalled = new Promise((resolve) => {
+    release = resolve;
+  });
+  await page.route(`https://arweave.net/${manifestId}`, (route) =>
+    route.fulfill({
+      json: {
+        version: CACHE_VERSION,
+        source: APP_NAME,
+        eventVersion: VERSION,
+        start: window.start,
+        end: window.end,
+        createdAt: Date.now() - 1000,
+        hash,
+        count: 1,
+        parts: [{ id: partId, hash }],
+      },
+    }),
+  );
+  await page.route(`https://arweave.net/${partId}`, async (route) => {
+    partRequested = true;
+    await stalled;
+    await route.fulfill({ json: rows }).catch(() => {});
+  });
+  await page.route(QUERY_URL, (route) => {
+    const { variables } = route.request().postDataJSON();
+    if (variables.tags[0].values[0] === CACHE_APP)
+      return route.fulfill({
+        json: response([
+          { cursor: 'cached', node: { id: manifestId, tags: cacheTags(window, 'manifest', hash) } },
+        ]),
+      });
+    const requested = variables.tags.find((tag) => tag.name === 'Timestamp').values;
+    return route.fulfill({
+      json: response(requested.includes(window.dates[2]) ? [old, late] : []),
+    });
+  });
+  try {
+    await page.goto('/analytics/');
+    await expect(page.locator('#analytics-status')).toContainText('Updated', { timeout: 4000 });
+    expect(partRequested).toBe(true);
+    await expect(page.locator('[data-metric="views"]')).toHaveText('2');
+    await expect(page.locator('#analytics-results')).toHaveAttribute('aria-busy', 'false');
+  } finally {
+    release();
+  }
 });
 
 test('live dashboard publishes signed shared snapshots but never visit events', async ({
