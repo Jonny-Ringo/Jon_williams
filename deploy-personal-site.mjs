@@ -60,6 +60,15 @@ export async function collectFiles(directory, prefix = '') {
 
 export async function fitFreeSize(file) {
   if (file.data.length <= PAYLOAD_LIMIT) return file.data;
+  if (file.name === 'learn-javascript-certificate.pdf') {
+    const sourceHash = createHash('sha256').update(file.data).digest('hex');
+    if (sourceHash !== '3caca2bed4777b352de1048d4d470aa5ebf84dc04ae9b7cde35b48387a207f6e')
+      throw new Error('The certificate changed. Regenerate and verify its Arweave deployment copy.');
+    const copy = await readFile(path.join(ROOT, 'deployment-assets', file.name));
+    if (copy.length > PAYLOAD_LIMIT || copy.subarray(0, 5).toString() !== '%PDF-')
+      throw new Error('The certificate deployment copy is invalid or exceeds the free upload budget.');
+    return copy;
+  }
   const extension = path.extname(file.name).toLowerCase();
   if (!['.jpg', '.jpeg', '.png', '.webp'].includes(extension)) {
     throw new Error(
