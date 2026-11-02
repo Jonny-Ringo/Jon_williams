@@ -17,7 +17,7 @@ export async function readResumeContent() {
   return {
     name: text($('.print-name')),
     location: text($('.profile-location')),
-    email: $('.career-contact .contact-email').attr('href').replace('mailto:', ''),
+    email: text($('.career-contact .contact-email')),
     github: $('.career-contact-actions a[href^="https://github.com/"]').attr('href'),
     summary: text($('.career-summary')),
     experience: $('.experience-item')

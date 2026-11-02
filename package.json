@@ -9,7 +9,7 @@
     "deploy": "node deploy-personal-site.mjs",
     "deploy:check": "node deploy-personal-site.mjs --dry-run",
     "test:deploy": "node --test scripts/deploy.test.mjs",
-    "test:analytics": "node --test scripts/analytics.test.mjs",
+    "test:analytics": "node --test scripts/analytics.test.mjs scripts/analytics-cache.test.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "playwright test",
     "format": "prettier --write .",

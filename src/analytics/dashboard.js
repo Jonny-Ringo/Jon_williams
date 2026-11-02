@@ -2,17 +2,8 @@ import '@fontsource-variable/manrope';
 import '../styles.css';
 import '../themes.css';
 import './dashboard.css';
-import {
-  APP_NAME,
-  VERSION,
-  QUERY_URL,
-  EVENTS,
-  OPT_OUT_KEY,
-  excluded,
-  privacyRequested,
-  dateRange,
-  parseEvent,
-} from './shared.js';
+import { EVENTS, OPT_OUT_KEY, excluded, privacyRequested, dateRange } from './shared.js';
+import { loadAnalytics } from './cache.js';
 
 const $ = (selector) => document.querySelector(selector);
 document.querySelectorAll('[data-year]').forEach((element) => {
@@ -41,87 +32,87 @@ preference.addEventListener('change', () => {
   }
 });
 
-const query = `query SiteActivity($tags: [TagFilter!], $after: String) {
-  transactions(tags: $tags, first: 100, after: $after, sort: HEIGHT_DESC) {
-    pageInfo { hasNextPage }
-    edges { cursor node { id tags { name value } } }
-  }
-}`;
 let controller;
+function mayPublishCache() {
+  return (
+    location.protocol === 'https:' &&
+    !/^(localhost|127\.|\[?::1\]?)/.test(location.hostname) &&
+    !location.hostname.endsWith('.localhost') &&
+    !!crypto.subtle &&
+    !excluded() &&
+    !privacyRequested()
+  );
+}
 async function load() {
   controller?.abort();
   controller = new AbortController();
   const active = controller;
   const days = Number($('#analytics-range').value);
   const dates = dateRange(days);
+  let renderedKey = '';
   const results = $('#analytics-results');
   results.hidden = true;
   results.setAttribute('aria-busy', 'true');
-  $('#analytics-status').textContent = 'Loading public records from Arweave…';
+  $('#analytics-status').textContent = 'Checking local and public caches...';
+  let storage;
   try {
-    const events = [];
-    const seen = new Set();
-    const cursors = new Set();
-    let after;
-    let more = false;
-    // Bound network work. Clearly label a partial result rather than silently
-    // treating the first GraphQL page as the entire reporting period.
-    for (let page = 0; page < 50; page++) {
-      const response = await fetch(QUERY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'omit',
-        referrerPolicy: 'no-referrer',
-        signal: AbortSignal.any([active.signal, AbortSignal.timeout(20000)]),
-        body: JSON.stringify({
-          query,
-          variables: {
-            after,
-            tags: [
-              { name: 'App-Name', values: [APP_NAME] },
-              { name: 'App-Version', values: [VERSION] },
-              { name: 'Timestamp', values: dates },
-            ],
-          },
-        }),
-      });
-      if (!response.ok) throw new Error('Query unavailable');
-      const data = await response.json();
-      const connection = data.data?.transactions;
-      if (
-        data.errors?.length ||
-        !Array.isArray(connection?.edges) ||
-        typeof connection.pageInfo?.hasNextPage !== 'boolean'
-      )
-        throw new Error('Invalid query response');
-      for (const edge of connection.edges) {
-        const event = parseEvent(edge.node, dates);
-        if (event && !seen.has(event.eventId)) {
-          events.push(event);
-          seen.add(event.eventId);
-        }
-      }
-      more = connection.pageInfo.hasNextPage;
-      if (!more) break;
-      const next = connection.edges.at(-1)?.cursor;
-      if (!next || cursors.has(next)) throw new Error('Pagination stalled');
-      cursors.add(next);
-      after = next;
-      $('#analytics-status').textContent =
-        `Reading records… ${events.length.toLocaleString()} events found.`;
-    }
-    if (active.signal.aborted) return;
-    render(events, dates);
-    results.hidden = false;
-    $('#analytics-status').textContent = more
-      ? 'Partial results: the query reached 5,000 records. Choose a shorter date range for a more complete view.'
-      : events.length
-        ? `Updated ${new Date().toLocaleTimeString()}. Showing indexed activity for the last ${days} days; recent visits may take time to appear.`
-        : 'No indexed activity in this date range yet. Tracking begins after deployment; recent visits may take time to appear.';
+    storage = localStorage;
   } catch {
-    if (active.signal.aborted) return;
-    $('#analytics-status').textContent =
-      'Analytics could not be loaded. The data service may be unavailable or blocked. Try Refresh in a moment.';
+    /* Continue without browser storage. */
+  }
+  try {
+    await loadAnalytics({
+      dates,
+      signal: active.signal,
+      storage,
+      locks: navigator.locks,
+      canPublish: mayPublishCache,
+      onUpdate(state) {
+        if (active.signal.aborted) return;
+        if (state.covered) {
+          const key = JSON.stringify(
+            [...state.events].sort((a, b) => a.eventId.localeCompare(b.eventId)),
+          );
+          if (key !== renderedKey) {
+            render(state.events, dates);
+            renderedKey = key;
+          }
+          results.hidden = false;
+        }
+        const done = state.stage === 'ready' || state.stage === 'done';
+        results.setAttribute('aria-busy', String(!done));
+        let message;
+        if (!done) {
+          message = state.cacheUsed
+            ? 'Showing cached activity while indexing new data and checking older records.'
+            : 'Indexing public activity...';
+          if (state.covered < state.total) message += ' Some dates are still loading.';
+        } else if (!state.covered) {
+          message =
+            'Analytics could not be loaded. The data service may be unavailable or blocked. Try Refresh in a moment.';
+        } else if (state.partial || state.failed) {
+          message =
+            'Partial results: some dates could not be fully checked. Cached activity is retained where available. Try Refresh or a shorter date range.';
+        } else {
+          message = state.events.length
+            ? 'Updated ' +
+              new Date().toLocaleTimeString() +
+              '. Showing indexed activity for the last ' +
+              days +
+              ' days; recent visits may take time to appear.'
+            : 'No indexed activity in this date range yet. Recent visits may take time to appear.';
+        }
+        if (state.published) message += ' Shared cache updated.';
+        if (state.publishFailed)
+          message +=
+            ' Public cache publishing was unavailable; your loaded results are still usable.';
+        $('#analytics-status').textContent = message;
+      },
+    });
+  } catch {
+    if (!active.signal.aborted)
+      $('#analytics-status').textContent =
+        'Analytics could not be loaded. Try Refresh in a moment.';
   } finally {
     if (!active.signal.aborted) results.setAttribute('aria-busy', 'false');
   }
@@ -172,19 +163,49 @@ function render(events, dates) {
   chart.replaceChildren();
   const bars = document.createElement('div');
   bars.className = 'analytics-bars';
-  bars.setAttribute('aria-hidden', 'true');
+  const tooltip = document.createElement('div');
+  tooltip.className = 'analytics-tooltip';
+  tooltip.id = 'analytics-bar-tooltip';
+  tooltip.setAttribute('role', 'tooltip');
+  tooltip.hidden = true;
   $('#analytics-daily').replaceChildren();
   dates.forEach((date, index) => {
-    const bar = document.createElement('span');
-    bar.style.height = `${(totals[index] / maximum) * 100}%`;
-    bar.title = `${date}: ${totals[index]} page views`;
+    const bar = document.createElement('button');
+    bar.type = 'button';
+    bar.className = 'analytics-bar';
+    const label = `${date}: ${totals[index].toLocaleString()} page ${totals[index] === 1 ? 'view' : 'views'}`;
+    bar.setAttribute('aria-label', label);
+    const fill = document.createElement('span');
+    fill.className = 'analytics-bar-fill';
+    fill.style.height = `${(totals[index] / maximum) * 100}%`;
+    fill.dataset.empty = String(totals[index] === 0);
+    bar.append(fill);
+    const show = () => {
+      tooltip.textContent = label;
+      tooltip.hidden = false;
+      const center = bar.offsetLeft + bar.offsetWidth / 2;
+      const half = tooltip.offsetWidth / 2;
+      tooltip.style.left = `${Math.max(half, Math.min(chart.clientWidth - half, center))}px`;
+    };
+    bar.addEventListener('mouseenter', show);
+    bar.addEventListener('focus', show);
+    bar.addEventListener('click', show);
+    bar.addEventListener('mouseleave', () => {
+      if (document.activeElement !== bar) tooltip.hidden = true;
+    });
+    bar.addEventListener('blur', () => {
+      tooltip.hidden = true;
+    });
+    bar.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') tooltip.hidden = true;
+    });
     bars.append(bar);
     const row = document.createElement('tr');
     cell(row, date);
     cell(row, String(totals[index]));
     $('#analytics-daily').append(row);
   });
-  chart.append(bars);
+  chart.append(bars, tooltip);
   const labels = document.createElement('p');
   labels.className = 'analytics-chart-labels';
   for (const value of [dates[0], `Peak: ${Math.max(...totals)} views/day`, dates.at(-1)]) {

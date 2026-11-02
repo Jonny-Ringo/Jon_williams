@@ -51,7 +51,7 @@ export async function createSigner() {
   );
   return { key: keys.privateKey, owner };
 }
-export async function signDataItem(payload, tags, signer) {
+export async function signDataItem(payload, tags, signer, maxPayloadBytes = 8192) {
   const parts = [avroLong(tags.length)];
   for (const { name, value } of tags) {
     for (const text of [name, value]) {
@@ -62,7 +62,11 @@ export async function signDataItem(payload, tags, signer) {
   parts.push(new Uint8Array([0]));
   const encodedTags = tags.length ? concat(...parts) : new Uint8Array();
   const data = utf8(JSON.stringify(payload));
-  if (encodedTags.length > 4096 || data.length > 8192 || signer.owner.length !== 512) {
+  if (
+    encodedTags.length > 4096 ||
+    data.length > Math.min(maxPayloadBytes, 96 * 1024) ||
+    signer.owner.length !== 512
+  ) {
     throw new Error('Invalid analytics data item');
   }
   const signatureData = await deepHash([

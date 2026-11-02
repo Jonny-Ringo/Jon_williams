@@ -50,7 +50,7 @@ export const projects = {
     ],
     links: [
       ['Visit The Eye', 'https://eye-of-ao.arweave.net/'],
-      ['Talk about this work', 'mailto:jon.k.williams.711@gmail.com?subject=On-chain%20reporting'],
+      ['Talk about this work', 'https://calendly.com/jonkwilliams'],
     ],
   },
   community: {

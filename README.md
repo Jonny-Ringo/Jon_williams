@@ -1,6 +1,6 @@
 # Jon Williams — personal site
 
-A personal homepage, shareable career page, and public analytics dashboard built with Vite and plain HTML, CSS, and JavaScript. Fonts are served locally. There are no runtime framework dependencies, contact-form services, or API keys. See [ANALYTICS.md](ANALYTICS.md) for the Arweave analytics implementation and privacy controls.
+A personal homepage, shareable career page, and public analytics dashboard built with Vite and plain HTML, CSS, and JavaScript. Fonts are served locally. There are no runtime framework dependencies, contact-form services, or API keys. See [analytics.MD](analytics.MD) for the Arweave analytics implementation and privacy controls.
 
 ## Run locally
 
@@ -96,7 +96,7 @@ References are available on request; third-party private contact details from th
 ## Verify
 
 The footer’s **Analytics** link opens the public Arweave dashboard. See
-[ANALYTICS.md](ANALYTICS.md) for tracking fields, privacy controls, indexing
+[analytics.MD](analytics.MD) for tracking fields, privacy controls, indexing
 limitations, and setup. It deploys with the rest of the site; local previews do
 not record visits.
 

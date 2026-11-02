@@ -1256,6 +1256,11 @@ main[id] {
   min-height: 22px;
   margin-top: 6px;
 }
+.contact-schedule {
+  display: inline-flex;
+  margin: 12px 0 0 12px;
+  white-space: nowrap;
+}
 .career-callout {
   border: 1px solid #cfd5c3;
   border-radius: 6px;

@@ -134,32 +134,33 @@ test('email copy handles success and an unavailable clipboard', async ({ page, c
   }
 });
 
-test('email links target the correct address and clicks are not blocked by the site', async ({
+test('contact links open Calendly and clicks are not blocked by the site', async ({
   page,
 }) => {
-  for (const route of ['/', '/career/']) {
+  for (const route of ['/', '/career/', '/analytics/']) {
     await page.goto(route);
     await expect(page.locator('.header-contact')).toHaveAttribute(
       'href',
-      'mailto:jon.k.williams.711@gmail.com',
+      'https://calendly.com/jonkwilliams',
     );
     await page.evaluate(() => {
-      window.emailClicks = [];
+      window.contactClicks = [];
       window.addEventListener('click', (event) => {
-        const link = event.target.closest('a[href^="mailto:"]');
+        const link = event.target.closest('a[href="https://calendly.com/jonkwilliams"]');
         if (!link) return;
-        window.emailClicks.push({ href: link.href, blocked: event.defaultPrevented });
-        // Observe the real click without opening an external email application during the test.
+        window.contactClicks.push({ href: link.href, blocked: event.defaultPrevented });
+        // Observe the real click without navigating to the external scheduling service.
         event.preventDefault();
       });
     });
-    const links = await page.locator('a[href^="mailto:"]').all();
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+    const links = await page.locator('a[href="https://calendly.com/jonkwilliams"]').all();
     for (const link of links) await link.click();
-    const clicks = await page.evaluate(() => window.emailClicks);
+    const clicks = await page.evaluate(() => window.contactClicks);
     expect(clicks).toHaveLength(links.length);
     for (const click of clicks) {
       expect(click.blocked).toBe(false);
-      expect(new URL(click.href).pathname).toBe('jon.k.williams.711@gmail.com');
+      expect(click.href).toBe('https://calendly.com/jonkwilliams');
     }
   }
 });

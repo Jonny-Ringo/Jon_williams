@@ -36,6 +36,10 @@ export function dateRange(days, now = Date.now()) {
 }
 export function parseEvent(node, dates, now = Date.now()) {
   if (!/^[A-Za-z0-9_-]{43}$/.test(node?.id ?? '') || !Array.isArray(node.tags)) return null;
+  if (
+    node.tags.some((tag) => !tag || typeof tag.name !== 'string' || typeof tag.value !== 'string')
+  )
+    return null;
   const tags = Object.fromEntries(node.tags.map(({ name, value }) => [name, value]));
   const timestamp = Number(tags['Event-Time']);
   const event = tags['Event-Type'];
@@ -48,6 +52,7 @@ export function parseEvent(node, dates, now = Date.now()) {
     !/^[a-f0-9]{32}$/.test(tags['Session-ID'] ?? '') ||
     !/^[a-f0-9]{32}$/.test(tags['Event-ID'] ?? '') ||
     !Number.isFinite(timestamp) ||
+    !Number.isSafeInteger(timestamp) ||
     timestamp < 0 ||
     timestamp > now + 60000 ||
     !dates.includes(tags.Timestamp)
