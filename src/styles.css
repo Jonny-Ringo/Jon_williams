@@ -1256,10 +1256,33 @@ main[id] {
   min-height: 22px;
   margin-top: 6px;
 }
-.contact-schedule {
-  display: inline-flex;
-  margin: 12px 0 0 12px;
+a.contact-schedule {
+  display: flex;
+  width: fit-content;
+  margin: 20px 0 10px;
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.6px;
   white-space: nowrap;
+}
+.contact-email-details {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+.contact-email-details span.contact-email {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.contact-email-details .copy-button {
+  margin: 0;
+  padding: 8px 0;
 }
 .career-callout {
   border: 1px solid #cfd5c3;

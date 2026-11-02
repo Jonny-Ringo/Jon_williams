@@ -28,7 +28,7 @@ copyButton?.addEventListener('click', async () => {
     await navigator.clipboard.writeText('jon.k.williams.711@gmail.com');
     status.textContent = 'Email copied!';
   } catch {
-    status.textContent = 'Select the email address above to copy it, or click it to write to me.';
+    status.textContent = 'Select the email address above to copy it.';
   }
 });
 
